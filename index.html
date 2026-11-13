@@ -33,7 +33,7 @@
 <link rel="stylesheet" href="styles.css">
 <noscript><style>.rise{opacity:1;transform:none;filter:none}</style></noscript>
 
-<script type="application/ld+json">
+<script type="application/ld+json" id="ld-salon">
 {
   "@context": "https://schema.org",
   "@type": "TattooParlor",
@@ -82,8 +82,8 @@
   "mainEntity": [
     { "@type": "Question", "name": "Как записаться на сеанс?", "acceptedAnswer": { "@type": "Answer", "text": "Выберите день и время в форме записи на сайте. Занятое время недоступно для выбора. Также можно позвонить по телефону +7 936 777-70-66 или написать в Telegram и WhatsApp." } },
     { "@type": "Question", "name": "Во сколько вы работаете?", "acceptedAnswer": { "@type": "Answer", "text": "Ежедневно, без выходных, с 7:00 до 00:00." } },
-    { "@type": "Question", "name": "Есть ли скидка на первое мини-тату?", "acceptedAnswer": { "@type": "Answer", "text": "Да, на первое мини-тату до 5 см действует скидка 10 %, эскизы от мастера в подарок. Акция действует до 31 декабря 2026 года." } },
-    { "@type": "Question", "name": "Делаете ли вы перекрытие старых тату?", "acceptedAnswer": { "@type": "Answer", "text": "Да, перекрытие татуировок входит в каталог услуг, стоимость 5 500 ₽. Приложите фото старой работы в форме записи." } },
+    { "@type": "Question", "name": "Есть ли скидки и акции?", "acceptedAnswer": { "@type": "Answer", "text": "Актуальные акции и их сроки собраны в разделе «Акции» на сайте. Если такого раздела нет, действующих акций сейчас нет." } },
+    { "@type": "Question", "name": "Делаете ли вы перекрытие старых тату?", "acceptedAnswer": { "@type": "Answer", "text": "Да, перекрытие татуировок входит в каталог услуг. Приложите фото старой работы в форме записи." } },
     { "@type": "Question", "name": "Можно ли прийти с собакой?", "acceptedAnswer": { "@type": "Answer", "text": "Да, в салон можно приходить с собакой." } },
     { "@type": "Question", "name": "Как оплатить и есть ли сертификаты?", "acceptedAnswer": { "@type": "Answer", "text": "Да, в салоне принимают оплату картой, есть подарочные сертификаты." } }
   ]
@@ -211,13 +211,14 @@
     <div class="sec__head sec__head--row">
       <span class="sec__num rise">02 / 06</span>
       <h2 id="promos-title" class="rise">Акции<br>салона</h2>
-      <p class="muted rise">Все предложения действуют до&nbsp;31 декабря 2026 года. Нужную акцию можно выбрать в&nbsp;форме записи.</p>
+      <p class="muted rise">У&nbsp;каждой акции указан срок. Нужную акцию можно выбрать в&nbsp;форме записи.</p>
     </div>
     <div class="promos">
       <article class="promo rise">
         <span class="promo__num">01</span>
         <h3>Первое <span class="nb">мини-тату</span> со&nbsp;скидкой 10&nbsp;%</h3>
         <p>Если вы ещё не&nbsp;пробовали, самое время начать. Скидка 10&nbsp;% на&nbsp;первое <span class="nb">мини-тату</span> до&nbsp;5&nbsp;см. Эскизы от&nbsp;мастера в&nbsp;подарок, гипоаллергенные материалы.</p>
+        <span class="promo__until">До&nbsp;31 декабря 2026</span>
         <a class="btn btn--ghost btn--sm" href="#booking" data-promo="Первое мини-тату со скидкой 10 %">
           <span class="btn__fill"></span><span class="btn__label">Записаться по&nbsp;акции</span>
         </a>
@@ -226,7 +227,8 @@
         <span class="promo__num">02</span>
         <h3>Полноценное тату<br>по&nbsp;цене часа работы</h3>
         <p>Предложение при&nbsp;нанесении татуировки по&nbsp;выбранному мастером эскизу. Доверьте уникальный дизайн рукам профессионала.</p>
-        <a class="btn btn--ghost btn--sm" href="#booking" data-promo="Тату по эскизу мастера по цене 1 часа">
+        <span class="promo__until">До&nbsp;31 декабря 2026</span>
+        <a class="btn btn--ghost btn--sm" href="#booking" data-promo="Полноценное тату по цене часа работы">
           <span class="btn__fill"></span><span class="btn__label">Записаться по&nbsp;акции</span>
         </a>
       </article>
@@ -234,7 +236,8 @@
         <span class="promo__num">03</span>
         <h3>При&nbsp;двух <span class="nb">мини-тату</span><br>третья бесплатно</h3>
         <p>При&nbsp;заказе двух <span class="nb">мини-тату</span> третья бесплатно. Подойдёт для&nbsp;первых тату, милых символов или коллекции миниатюр.</p>
-        <a class="btn btn--ghost btn--sm" href="#booking" data-promo="Третья мини-тату бесплатно">
+        <span class="promo__until">До&nbsp;31 декабря 2026</span>
+        <a class="btn btn--ghost btn--sm" href="#booking" data-promo="При двух мини-тату третья бесплатно">
           <span class="btn__fill"></span><span class="btn__label">Записаться по&nbsp;акции</span>
         </a>
       </article>
@@ -242,8 +245,9 @@
         <span class="promo__num">04</span>
         <h3>Счастливые часы со&nbsp;скидкой 10&nbsp;%</h3>
         <p>В&nbsp;будние дни с&nbsp;9&nbsp;до&nbsp;14 скидка 10&nbsp;% на&nbsp;любую татуировку. Сеанс нужно забронировать заранее и&nbsp;указать акцию.</p>
-        <a class="btn btn--ghost btn--sm" href="#booking" data-promo="Счастливые часы: будни с 9 до 14, скидка 10 %">
-          <span class="btn__fill"></span><span class="btn__label">Забронировать счастливые часы</span>
+        <span class="promo__until">До&nbsp;31 декабря 2026</span>
+        <a class="btn btn--ghost btn--sm" href="#booking" data-promo="Счастливые часы со скидкой 10 %">
+          <span class="btn__fill"></span><span class="btn__label">Записаться по&nbsp;акции</span>
         </a>
       </article>
     </div>
@@ -363,7 +367,7 @@
                 <option>Мини-тату — 5 000 ₽</option>
                 <option>Перекрытие тату — 5 500 ₽</option>
                 <option>Обучение тату — 35 000 ₽</option>
-                <option>Удаление татуировки</option>
+                <option>Удаление татуировки или другое</option>
               </select>
             </label>
             <label class="field">
@@ -371,9 +375,9 @@
               <select name="promo" id="fPromo">
                 <option value="">Без акции</option>
                 <option>Первое мини-тату со скидкой 10 %</option>
-                <option>Тату по эскизу мастера по цене 1 часа</option>
-                <option>Третья мини-тату бесплатно</option>
-                <option>Счастливые часы: будни с 9 до 14, скидка 10 %</option>
+                <option>Полноценное тату по цене часа работы</option>
+                <option>При двух мини-тату третья бесплатно</option>
+                <option>Счастливые часы со скидкой 10 %</option>
               </select>
             </label>
           </div>
@@ -495,12 +499,12 @@
         <p>Ежедневно, без&nbsp;выходных, с&nbsp;7:00 до&nbsp;00:00.</p>
       </details>
       <details class="rise">
-        <summary>Есть ли скидка на&nbsp;первое <span class="nb">мини-тату</span>?</summary>
-        <p>Да. На&nbsp;первое <span class="nb">мини-тату</span> до&nbsp;5&nbsp;см действует скидка 10&nbsp;%, эскизы от&nbsp;мастера в&nbsp;подарок. Акция действует до&nbsp;31 декабря 2026 года.</p>
+        <summary>Есть ли скидки и&nbsp;акции?</summary>
+        <p>Актуальные акции и&nbsp;их сроки собраны в&nbsp;разделе «Акции» выше. Если такого раздела нет, действующих акций сейчас нет.</p>
       </details>
       <details class="rise">
         <summary>Делаете ли вы перекрытие старых тату?</summary>
-        <p>Да, перекрытие входит в&nbsp;каталог, стоимость 5&nbsp;500&nbsp;₽. Приложите фото старой работы в&nbsp;форме записи, чтобы мастер видел, с&nbsp;чем предстоит работать.</p>
+        <p>Да, перекрытие входит в&nbsp;каталог услуг, цена указана выше. Приложите фото старой работы в&nbsp;форме записи, чтобы мастер видел, с&nbsp;чем предстоит работать.</p>
       </details>
       <details class="rise">
         <summary>Можно ли прийти с&nbsp;собакой?</summary>
