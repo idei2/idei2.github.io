@@ -6,7 +6,7 @@
   const CONFIG = {
     // Адрес веб-приложения Google Apps Script (заканчивается на /exec).
     // Инструкция в файле apps-script/README.md. Пока пусто, запись не отправляется.
-    endpoint: 'https://script.google.com/macros/s/AKfycbyOtGIvOMPIUkwLbNp5UH-gzSfvrN6YYmwkxwbhC_k9NMvqlhwUOYheVvEPMOJig-nM/exec',
+    endpoint: '',
     tz: 'Europe/Moscow',
     firstHour: 7,
     lastHour: 23,
@@ -20,10 +20,10 @@
   const pad2 = (n) => String(n).padStart(2, '0');
 
   /* ============ Появление блоков ============ */
-  const rises = $$('.rise');
-  rises.forEach((el) => el.style.setProperty('--d', (reduce ? 0 : Number(el.dataset.d || 0)) + 'ms'));
+  const setDelay = (el) => el.style.setProperty('--d', (reduce ? 0 : Number(el.dataset.d || 0)) + 'ms');
+  let io = null;
   if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
+    io = new IntersectionObserver((entries) => {
       let step = 0;
       entries.filter((e) => e.isIntersecting).forEach((e) => {
         // однородные элементы, вошедшие в кадр вместе, идут лесенкой по 50 мс
@@ -33,10 +33,14 @@
         io.unobserve(e.target);
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
-    rises.forEach((el) => io.observe(el));
-  } else {
-    rises.forEach((el) => el.classList.add('is-in'));
   }
+  const watchRises = (root = document) => {
+    $$('.rise:not(.is-in)', root).forEach((el) => {
+      setDelay(el);
+      if (io) io.observe(el); else el.classList.add('is-in');
+    });
+  };
+  watchRises();
 
   /* ============ Шапка и меню ============ */
   const hdr = $('.hdr');
@@ -59,28 +63,34 @@
 
   /* ============ Каталог: превью работы за курсором ============ */
   const peek = $('.peek');
-  if (peek && !reduce && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+  const svcList = $('.svc-list');
+  if (peek && svcList && !reduce && matchMedia('(hover: hover) and (pointer: fine)').matches) {
     const img = $('img', peek);
-    let tx = 0, ty = 0, x = 0, y = 0, raf = 0;
+    let tx = 0, ty = 0, x = 0, y = 0, raf = 0, cur = null;
     const loop = () => {
       x += (tx - x) * 0.14;
       y += (ty - y) * 0.14;
       peek.style.transform = `translate3d(${x + 36}px, ${y - 140}px, 0)`;
       raf = requestAnimationFrame(loop);
     };
-    $$('.svc').forEach((row) => {
-      row.addEventListener('pointerenter', (e) => {
+    const off = () => {
+      cur = null;
+      peek.classList.remove('is-on');
+      cancelAnimationFrame(raf); raf = 0;
+    };
+    svcList.addEventListener('pointermove', (e) => {
+      const row = e.target.closest('.svc');
+      if (!row) return off();
+      tx = e.clientX; ty = e.clientY;
+      if (row !== cur) {
+        if (!cur) { x = tx; y = ty; }
+        cur = row;
         img.src = row.dataset.preview;
-        x = tx = e.clientX; y = ty = e.clientY;
         peek.classList.add('is-on');
         if (!raf) loop();
-      });
-      row.addEventListener('pointermove', (e) => { tx = e.clientX; ty = e.clientY; });
-      row.addEventListener('pointerleave', () => {
-        peek.classList.remove('is-on');
-        cancelAnimationFrame(raf); raf = 0;
-      });
+      }
     });
+    svcList.addEventListener('pointerleave', off);
   }
 
   /* ============ Работы: просмотр ============ */
@@ -116,6 +126,109 @@
     policy.addEventListener('click', (e) => { if (e.target === policy) policy.close(); });
   }
 
+  /* ============ Услуги и акции из Google Таблицы ============ */
+  const hasEndpoint = () => /^https:\/\/script\.google\.com\//.test(CONFIG.endpoint);
+  const PREVIEWS = ['assets/work-4.webp', 'assets/work-3.webp', 'assets/work-1.webp', 'assets/work-2.webp', 'assets/interior-1.webp'];
+  const NBSP = '\u00A0';
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  // та же типографика, что и в разметке: короткие слова и числа не отрываются от соседей
+  const typo = (s) => esc(s)
+    .replace(/(^|[^\wа-яё])(в|во|на|с|со|к|ко|у|о|об|и|а|но|из|за|по|до|от|не|ни|же|бы|для|без|при|над|под|про)\s+(?=\S)/gi, (m, p, w) => p + w + NBSP)
+    .replace(/(\d)\s+(?=%|₽|см(?![\wа-яё])|фото|отзыв)/g, '$1' + NBSP)
+    .replace(/\s+—\s/g, NBSP + '— ');
+  const nb = (html) => html.replace(/(мини-тату|тату-салон\S*|тату-мастер)/gi, '<span class="nb">$1</span>');
+  const money = (v) => typeof v === 'number'
+    ? v.toLocaleString('ru-RU') + NBSP + '₽'
+    : String(v || '').trim();
+  const longDate = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).replace(/\s*г\.$/, '');
+  const arrow = '<svg aria-hidden="true"><use href="#i-arrow"/></svg>';
+
+  const renderServices = (list) => {
+    const box = $('.svc-list');
+    if (!box || !list.length) return;
+    box.innerHTML = list.map((s, i) => `
+      <a class="svc rise" href="#booking" data-service="${esc(s.name)}" data-preview="${PREVIEWS[i % PREVIEWS.length]}">
+        <span class="svc__name">${nb(typo(s.name))}</span>
+        <span class="svc__price">${typo(money(s.price))}</span>
+        <span class="svc__desc">${nb(typo(s.desc))}</span>
+        <span class="svc__go">Выбрать время ${arrow}</span>
+      </a>`).join('');
+    watchRises(box);
+  };
+
+  const renderPromos = (list) => {
+    const sec = $('#promos');
+    const box = $('.promos');
+    if (!sec || !box) return;
+    const hide = !list.length;
+    sec.hidden = hide;
+    $$('a[href="#promos"]').forEach((a) => { a.hidden = hide; });
+    if (hide) return;
+    box.innerHTML = list.map((p, i) => `
+      <article class="promo rise"${i % 2 ? ' data-d="100"' : ''}>
+        <span class="promo__num">${String(i + 1).padStart(2, '0')}</span>
+        <h3>${nb(typo(p.title))}</h3>
+        <p>${nb(typo(p.text))}</p>
+        ${p.until ? `<span class="promo__until">До ${longDate(p.until)}</span>` : ''}
+        <a class="btn btn--ghost btn--sm" href="#booking" data-promo="${esc(p.title)}">
+          <span class="btn__fill"></span><span class="btn__label">Записаться по акции</span>
+        </a>
+      </article>`).join('');
+    watchRises(box);
+  };
+
+  const renderSelects = (services, promos) => {
+    const sv = $('#fService');
+    const pr = $('#fPromo');
+    if (sv && services.length) {
+      sv.innerHTML = '<option value="">Выберите услугу</option>' +
+        services.map((s) => `<option>${esc(s.name)} — ${esc(money(s.price))}</option>`).join('') +
+        '<option>Удаление татуировки или другое</option>';
+    }
+    if (pr) {
+      pr.innerHTML = '<option value="">Без акции</option>' + promos.map((p) => `<option>${esc(p.title)}</option>`).join('');
+    }
+  };
+
+  const renderLd = (services) => {
+    const ld = $('#ld-salon');
+    if (!ld) return;
+    try {
+      const data = JSON.parse(ld.textContent);
+      const items = services.filter((s) => typeof s.price === 'number').map((s) => ({
+        '@type': 'Offer', priceCurrency: 'RUB', price: String(s.price), itemOffered: { '@type': 'Service', name: s.name }
+      }));
+      if (items.length) { data.hasOfferCatalog.itemListElement = items; ld.textContent = JSON.stringify(data); }
+    } catch (_) { /* оставляем разметку из HTML */ }
+  };
+
+  const renumber = () => {
+    const nums = $$('.sec__num').filter((n) => !n.closest('[hidden]'));
+    nums.forEach((n, i) => { n.textContent = `${String(i + 1).padStart(2, '0')} / ${String(nums.length).padStart(2, '0')}`; });
+  };
+
+  const loadContent = async () => {
+    if (!hasEndpoint()) return;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const r = await fetch(`${CONFIG.endpoint}?action=content&_=${Math.floor(Date.now() / 60000)}`, { signal: ctrl.signal });
+      const j = await r.json();
+      if (!j || !j.ok || !Array.isArray(j.services) || !j.services.length) return; // оставляем то, что в HTML
+      const promos = Array.isArray(j.promos) ? j.promos : [];
+      renderServices(j.services);
+      renderPromos(promos);
+      renderSelects(j.services, promos);
+      renderLd(j.services);
+      renumber();
+    } catch (_) {
+      /* таблица недоступна: на странице остаются услуги и акции из HTML */
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+  loadContent();
+
   /* ============ Запись ============ */
   const form = $('#bookingForm');
   if (!form) return;
@@ -130,7 +243,6 @@
     error: $('#formError'), submit: $('#submitBtn'), label: $('#submitLabel'),
     summary: $('#summary'), done: $('#done'), doneWhen: $('#doneWhen')
   };
-  const hasEndpoint = () => /^https:\/\/script\.google\.com\//.test(CONFIG.endpoint);
   const state = { date: '', time: '', busy: new Set(), loaded: false, loadFailed: false, files: [], sending: false };
 
   /* --- Время по Москве --- */
@@ -343,8 +455,12 @@
     const opt = Array.from(sel.options).find((o) => o.text.startsWith(text));
     if (opt) sel.value = opt.value || opt.text;
   };
-  $$('[data-service]').forEach((a) => a.addEventListener('click', () => setSelect(els.service, a.dataset.service)));
-  $$('[data-promo]').forEach((a) => a.addEventListener('click', () => setSelect(els.promo, a.dataset.promo)));
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('[data-service], [data-promo]');
+    if (!a) return;
+    if (a.dataset.service) setSelect(els.service, a.dataset.service);
+    if (a.dataset.promo) setSelect(els.promo, a.dataset.promo);
+  });
 
   /* --- Ошибки --- */
   const showError = (msg) => { els.error.textContent = msg; els.error.hidden = false; };
