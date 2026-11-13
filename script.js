@@ -212,7 +212,7 @@
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000);
     try {
-      const r = await fetch(`${CONFIG.endpoint}?action=content&_=${Math.floor(Date.now() / 60000)}`, { signal: ctrl.signal });
+      const r = await fetch(`${CONFIG.endpoint}?action=content&_=${Math.floor(Date.now() / 60000)}`, { signal: ctrl.signal, cache: 'no-store' });
       const j = await r.json();
       if (!j || !j.ok || !Array.isArray(j.services) || !j.services.length) return; // оставляем то, что в HTML
       const promos = Array.isArray(j.promos) ? j.promos : [];
@@ -366,7 +366,7 @@
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 10000);
     try {
-      const r = await fetch(`${CONFIG.endpoint}?action=slots&_=${Date.now()}`, { signal: ctrl.signal });
+      const r = await fetch(`${CONFIG.endpoint}?action=slots&_=${Date.now()}`, { signal: ctrl.signal, cache: 'no-store' });
       const j = await r.json();
       state.busy = new Set(Array.isArray(j.busy) ? j.busy : []);
       state.loadFailed = false;
