@@ -6,7 +6,7 @@
   const CONFIG = {
     // Адрес веб-приложения Google Apps Script (заканчивается на /exec).
     // Инструкция в файле apps-script/README.md. Пока пусто, запись не отправляется.
-    endpoint: '',
+    endpoint: 'https://script.google.com/macros/s/AKfycbyOtGIvOMPIUkwLbNp5UH-gzSfvrN6YYmwkxwbhC_k9NMvqlhwUOYheVvEPMOJig-nM/exec',
     tz: 'Europe/Moscow',
     firstHour: 7,
     lastHour: 23,
